@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3rd Space</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --bg-dark: #0b0c10;
+            --bg-card: #1f2833;
+            --accent: #66fcf1;
+            --accent-dim: #45a29e;
+            --text-main: #f1f2f6;
+            --text-muted: #c5c6c7;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+        
+        .app-container {
+            max-width: 414px;
+            width: 100%;
+            min-height: 100dvh;
+            background: var(--bg-dark);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Views */
+        .view {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            min-height: 100dvh;
+            padding: 1.5rem;
+        }
+        .view.active {
+            display: flex;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        /* Reusable Animations */
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: scale(0.98); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .fade-container {
+            animation: fadeIn 0.4s ease forwards;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        /* Screen 0: Splash Branding */
+        .splash-screen {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+        
+        .splash-content {
+            margin-bottom: 2rem;
+            margin-top: -4rem; /* Lift up slightly off center */
+        }
+        
+        .animated-logo {
+            font-size: 4.2rem;
+            font-weight: 800;
+            letter-spacing: -2px;
+            margin-bottom: 0px;
+            line-height: 1;
+            color: #fff;
+            animation: pulseGlow 3s ease-in-out infinite alternate;
+        }
+        .animated-logo span {
+            color: var(--accent);
+        }
+        
+        @keyframes pulseGlow {
+            0% { transform: scale(1); text-shadow: 0 0 10px rgba(102, 252, 241, 0.1); }
+            100% { transform: scale(1.05); text-shadow: 0 0 35px rgba(102, 252, 241, 0.6); }
+        }
+
+        .emphasized-slogan {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            font-weight: 600;
+            font-style: italic;
+            color: #fff;
+            margin-top: 2rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            
+            opacity: 0;
+            animation: fadeInSlogan 1.5s ease forwards 0.5s;
+        }
+        
+        @keyframes fadeInSlogan {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loader-container {
+            transition: opacity 0.5s ease;
+            height: 60px; /* Hold space for enter btn */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        .loader {
+            width: 45px;
+            height: 45px;
+            border: 3px solid rgba(102, 252, 241, 0.15);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .enter-btn-container {
+            margin-top: 1rem;
+            height: 60px;
+            width: 100%;
+            display: none;
+            animation: fadeInUpBtn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes fadeInUpBtn {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+
+        /* Event Selector */
+        .event-selector-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+            margin-top: 0.5rem;
+        }
+        .event-selector {
+            background: rgba(102, 252, 241, 0.1);
+            border: 1px solid rgba(102, 252, 241, 0.3);
+            border-radius: 20px;
+            padding: 6px 14px;
+            display: inline-flex;
+            align-items: center;
+            color: var(--accent);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .event-select-input {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-weight: 700;
+            outline: none;
+            appearance: none;
+            cursor: pointer;
+            margin-left: 6px;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+        }
+        .event-select-input option {
+            background: var(--bg-card);
+            color: var(--text-main);
+        }
+
+        /* Screen 1: Category Grid */
+        .brand-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
+            color: var(--accent);
+            text-align: center;
+        }
+        .header-sub {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 2rem;
+        }
+        .category-card {
+            background-color: var(--bg-card);
+            border-radius: 20px;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            border: 1px solid rgba(102, 252, 241, 0.1);
+        }
+        .category-card:active {
+            transform: scale(0.95);
+            background-color: rgba(102, 252, 241, 0.15);
+        }
+        .cat-icon-lg {
+            font-size: 2.2rem;
+            margin-bottom: 0.75rem;
+            display: block;
+            color: var(--text-main);
+            opacity: 0.9;
+        }
+        .cat-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--text-main);
+        }
+
+        /* Screen 2: Discovery Profile */
+        .nav-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+            padding-top: 0.5rem;
+        }
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            padding: 0;
+            cursor: pointer;
+        }
+        .cat-badge-top {
+            background: rgba(102, 252, 241, 0.15);
+            color: var(--accent);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .profile-container {
+            flex-grow: 1;
+            background: var(--bg-card);
+            border-radius: 24px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .img-wrapper {
+            position: relative;
+            height: 52%;
+            width: 100%;
+        }
+        .profile-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 20%;
+        }
+        .img-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(to top, var(--bg-card), transparent);
+        }
+        .profile-details {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .profile-name {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 0.2rem;
+            line-height: 1;
+        }
+        .subtopic-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(102, 252, 241, 0.1);
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+        .subtopic-badge i {
+            margin-right: 8px;
+            color: var(--accent);
+        }
+
+        .prompt-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.35rem;
+            color: #fff;
+            line-height: 1.4;
+            margin-bottom: auto;
+            position: relative;
+        }
+        .prompt-text::before {
+            content: "“";
+            color: var(--accent);
+            font-size: 2.5rem;
+            position: absolute;
+            top: -12px;
+            left: -18px;
+            opacity: 0.6;
+            font-family: sans-serif;
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+        .action-btn {
+            flex: 1;
+            border-radius: 16px;
+            border: none;
+            padding: 16px 10px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            transition: transform 0.1s, background-color 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-skip {
+            background-color: #2f3640;
+            color: var(--text-muted);
+        }
+        .btn-skip:active {
+            transform: scale(0.95);
+            background-color: #353b48;
+        }
+        .btn-connect {
+            background-color: var(--accent);
+            color: var(--bg-dark);
+            box-shadow: 0 4px 20px rgba(102, 252, 241, 0.25);
+        }
+        .btn-connect:active {
+            transform: scale(0.95);
+            background-color: var(--accent-dim);
+        }
+
+        .end-state {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            color: var(--text-muted);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .end-state i {
+            font-size: 4rem;
+            color: var(--accent-dim);
+            margin-bottom: 1rem;
+        }
+        
+        /* Screen 3: Success Match View */
+        .success-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 0 0 2rem 0;
+        }
+        
+        .success-avatar-ring {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+            padding: 4px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0 35px rgba(102, 252, 241, 0.25);
+            position: relative;
+            flex-shrink: 0;
+            margin-top: 1rem;
+        }
+        .success-avatar-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--bg-dark);
+        }
+        .success-icon-badge {
+            position: absolute;
+            bottom: 0px;
+            right: 0px;
+            background: var(--accent);
+            color: var(--bg-dark);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            border: 3px solid var(--bg-dark);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .success-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+        .success-text {
+            font-size: 1.15rem;
+            color: var(--text-main);
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+        
+        /* Distance visualizer */
+        .success-distance {
+            background: rgba(102, 252, 241, 0.1);
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(102, 252, 241, 0.2);
+            width: 100%;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+        .success-distance i {
+            color: var(--accent);
+            font-size: 1.25rem;
+        }
+
+        .success-subtext {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .bonus-section {
+            border-top: 1px solid rgba(255,255,255,0.08);
+            padding-top: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <!-- View: Splash Logo (Loading) -->
+    <div class="view active splash-screen" id="viewSplash">
+        <div class="splash-content">
+            <h1 class="brand-logo-large animated-logo">3rd<span>Space</span></h1>
+            <p class="brand-slogan emphasized-slogan">Sparking real conversations.</p>
+        </div>
+        
+        <div class="loader-container" id="splashLoader">
+            <div class="loader"></div>
+        </div>
+
+        <div class="enter-btn-container" id="splashEnterBtn">
+            <button class="btn action-btn btn-connect w-100" style="padding: 1.2rem; font-size: 1.2rem;" onclick="enterApp()">
+                Join the Room
+            </button>
+        </div>
+    </div>
+
+    <!-- View: Categories -->
+    <div class="view" id="viewCategories">
+        
+        <div class="event-selector-container">
+            <div class="event-selector">
+                <i class="bi bi-geo-alt-fill"></i>
+                <select id="eventSelect" class="event-select-input">
+                    <option value="Comic Con 2026">Comic Con 2026</option>
+                    <option value="Startup Mixer">Startup Mixer</option>
+                    <option value="Local Coffee Shop">Local Coffee Shop</option>
+                </select>
+                <i class="bi bi-chevron-down ms-1" style="font-size: 0.75rem;"></i>
+            </div>
+        </div>
+
+        <div style="flex-grow: 1; display:flex; flex-direction: column; justify-content: center;">
+            <h1 class="brand-title" style="margin-top: 0">What are you into?</h1>
+            <p class="header-sub">Select a topic to discover who is in the room and what they love to talk about.</p>
+            
+            <div class="grid-container">
+                <div class="category-card" onclick="openCategory('tech')">
+                    <span class="cat-icon-lg"><i class="bi bi-cpu"></i></span>
+                    <h3 class="cat-title">Tech & AI</h3>
+                </div>
+                <div class="category-card" onclick="openCategory('sports')">
+                    <span class="cat-icon-lg"><i class="bi bi-trophy"></i></span>
+                    <h3 class="cat-title">Sports</h3>
+                </div>
+                <div class="category-card" onclick="openCategory('health')">
+                    <span class="cat-icon-lg"><i class="bi bi-heart-pulse"></i></span>
+                    <h3 class="cat-title">Health</h3>
+                </div>
+                <div class="category-card" onclick="openCategory('arts')">
+                    <span class="cat-icon-lg"><i class="bi bi-palette"></i></span>
+                    <h3 class="cat-title">Arts</h3>
+                </div>
+                <div class="category-card" onclick="openCategory('games')">
+                    <span class="cat-icon-lg"><i class="bi bi-controller"></i></span>
+                    <h3 class="cat-title">Games</h3>
+                </div>
+                <div class="category-card" onclick="openCategory('travel')">
+                    <span class="cat-icon-lg"><i class="bi bi-airplane"></i></span>
+                    <h3 class="cat-title">Travel</h3>
+                </div>
+                <div class="category-card" onclick="openCategory('nature')">
+                    <span class="cat-icon-lg"><i class="bi bi-tree"></i></span>
+                    <h3 class="cat-title">Nature</h3>
+                </div>
+                <div class="category-card" onclick="openCategory('food')">
+                    <span class="cat-icon-lg"><i class="bi bi-cup-hot"></i></span>
+                    <h3 class="cat-title">Food & Drink</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View: Discovery Profile -->
+    <div class="view" id="viewDiscovery">
+        <div class="nav-header">
+            <button class="back-btn" onclick="goHome()"><i class="bi bi-chevron-left"></i></button>
+            <div class="cat-badge-top" id="headerCategory">Sports</div>
+            <div style="width: 24px;"></div> <!-- Spacer -->
+        </div>
+
+        <div class="profile-container" id="profileCard">
+            <!-- Dynamically populated -->
+        </div>
+    </div>
+
+    <!-- View: Success Connection -->
+    <!-- Scrollable container needed here because we are adding extra content -->
+    <div class="view" id="viewSuccess" style="overflow-y: auto;">
+        <div class="success-container fade-container">
+            
+            <div class="success-avatar-ring">
+                <img src="" id="successAvatarImg" class="success-avatar-img" alt="Matched Person">
+                <div class="success-icon-badge">
+                    <i class="bi bi-check-lg"></i>
+                </div>
+            </div>
+
+            <h2 class="success-title">Connection Made!</h2>
+            <p class="success-text">Look around <b id="successEventName" style="color: var(--accent)"> Comic Con 2026</b> for <b id="successName">the person</b>.</p>
+            
+            <div class="success-distance">
+                <i class="bi bi-geo-alt-fill"></i>
+                <span>They are about <b id="successDistance" style="color: #fff">20</b> ft away.</span>
+            </div>
+
+            <p class="success-subtext" id="successReminderText">Remember to ask them about their interests!</p>
+            
+            <!-- BONUS AMMO SECTION -->
+            <div class="bonus-section w-100 text-start">
+                <h4 class="text-accent text-uppercase" style="font-size: 0.85rem; letter-spacing: 1px; font-weight: 700;">Bonus Icebreakers:</h4>
+                <ul id="successOtherQuestions" style="color: #f1f2f6; font-size: 1rem; line-height: 1.5; padding-left: 1.25rem; margin-bottom: 1.5rem; margin-top: 0.5rem;">
+                    <!-- JS populated -->
+                </ul>
+                
+                <h4 class="text-accent text-uppercase" style="font-size: 0.85rem; letter-spacing: 1px; font-weight: 700;">Other Things They Love:</h4>
+                <div id="successExtraInterests" class="d-flex flex-wrap gap-2 mt-2">
+                    <!-- JS populated -->
+                </div>
+            </div>
+
+            <button class="btn btn-secondary mt-2 py-3 rounded-pill fw-bold w-100" style="background-color: #1f2833; color: white; border: none; font-size: 1.1rem; letter-spacing: 0.5px;" onclick="goHomeFromSuccess()">Back to Topics</button>
+            <div style="height: 20px; width: 100%;"></div> <!-- extra padding at bottom -->
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // App Initialization (Splash Screen)
+    window.onload = function() {
+        const loader = document.getElementById('splashLoader');
+        const enterBtn = document.getElementById('splashEnterBtn');
+        
+        // Let the spinning ring run for 2.2 seconds, then fade it out and show "Join Room" button
+        setTimeout(() => {
+            loader.style.opacity = '0';
+            setTimeout(() => {
+                loader.style.display = 'none';
+                enterBtn.style.display = 'block';
+            }, 500);
+        }, 2200);
+    };
+    
+    // Explicit click to enter the app
+    function enterApp() {
+        document.getElementById('viewSplash').classList.remove('active');
+        document.getElementById('viewCategories').style.display = 'flex';
+        setTimeout(() => {
+            document.getElementById('viewCategories').classList.add('active');
+        }, 10);
+    }
+
+    // Hardcoded Database of attendees 
+    const db = [
+        // TECH / AI
+        { 
+            category: 'tech', name: 'Kevin', age: 26, subtopic: 'Artificial Intelligence', 
+            prompt: "Ask Kevin how he uses AI tools in his daily workflow.", 
+            img: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&q=80',
+            otherQuestions: ["Does he think AI will replace coding tasks completely?", "What's his favorite AI product right now?"],
+            extraInterests: ["Mechanical Keyboards", "Sci-Fi Books"]
+        },
+        { 
+            category: 'tech', name: 'Eileen', age: 31, subtopic: 'Startups', 
+            prompt: "Ask Eileen what startup idea she is currently brainstorming.", 
+            img: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=600&q=80',
+            otherQuestions: ["Has she ever founded a company?", "What SaaS space is she most interested in?"],
+            extraInterests: ["Networking Events", "Podcasting"]
+        },
+        { 
+            category: 'tech', name: 'Omar', age: 29, subtopic: 'Web Development', 
+            prompt: "Ask Omar what his favorite programming language is.", 
+            img: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=600&q=80',
+            otherQuestions: ["Is he focused on Frontend or Backend systems?", "What's the coolest project he built recently?"],
+            extraInterests: ["Hackathons", "Bouldering"]
+        },
+        
+        // SPORTS
+        { 
+            category: 'sports', name: 'Lee', age: 28, subtopic: 'Basketball (Knicks)', 
+            prompt: "Ask Lee about his thoughts on the Knicks' latest season.", 
+            img: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=600&q=80',
+            otherQuestions: ["Who is his favorite Knicks player of all time?", "Does he play basketball himself?"],
+            extraInterests: ["Streetwear", "Hip Hop Music"]
+        },
+        { 
+            category: 'sports', name: 'Marcus', age: 31, subtopic: 'Tennis', 
+            prompt: "Ask Marcus who his favorite Wimbledon champion is.", 
+            img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80',
+            otherQuestions: ["Does he prefer playing on clay or grass courts?", "When did he start watching tennis?"],
+            extraInterests: ["Coffee", "Cycling"]
+        },
+        { 
+            category: 'sports', name: 'Chloe', age: 26, subtopic: 'F1 Racing', 
+            prompt: "Ask Chloe how she got into Formula 1.", 
+            img: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&q=80',
+            otherQuestions: ["Who is her favorite F1 driver right now?", "Has she ever attended a Formula race in person?"],
+            extraInterests: ["Photography", "Travel"]
+        },
+
+        // HEALTH
+        { 
+            category: 'health', name: 'Sarah', age: 29, subtopic: 'Meditation', 
+            prompt: "Ask Sarah about her favorite meditation app.", 
+            img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600&q=80',
+            otherQuestions: ["What time of day does she prefer to meditate?", "How long has she been practicing?"],
+            extraInterests: ["Journaling", "Matcha Lattes"]
+        },
+        { 
+            category: 'health', name: 'David', age: 34, subtopic: 'Marathons', 
+            prompt: "Ask David how he trains for a marathon.", 
+            img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&q=80',
+            otherQuestions: ["What's his go-to running shoe brand?", "How does he avoid injuries on long runs?"],
+            extraInterests: ["Podcasts", "Nutrition"]
+        },
+        { 
+            category: 'health', name: 'Emma', age: 25, subtopic: 'Yoga', 
+            prompt: "Ask Emma about her favorite Yoga styles.", 
+            img: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&q=80',
+            otherQuestions: ["Does she prefer hot yoga or vinyasa flows?", "Where does she usually practice?"],
+            extraInterests: ["Plant Care", "Smoothie Bowls"]
+        },
+
+        // ARTS
+        { 
+            category: 'arts', name: 'Alex', age: 30, subtopic: 'Sci-Fi Movies', 
+            prompt: "Ask Alex what his favorite Sci-Fi movie of all time is.", 
+            img: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&q=80',
+            otherQuestions: ["Does he prefer Star Wars or Star Trek?", "What's the best sci-fi book he's read?"],
+            extraInterests: ["Dune Universe", "Video Games"]
+        },
+        { 
+            category: 'arts', name: 'Sofia', age: 27, subtopic: 'Modern Art', 
+            prompt: "Ask Sofia if she's visited the MoMA recently.", 
+            img: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&q=80',
+            otherQuestions: ["Who is her favorite contemporary artist?", "Does she paint or draw herself?"],
+            extraInterests: ["Thrifting", "Indie Music"]
+        },
+        { 
+            category: 'arts', name: 'Julian', age: 33, subtopic: 'Salsa Dancing', 
+            prompt: "Ask Julian how long he's been dancing Salsa.", 
+            img: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?w=600&q=80',
+            otherQuestions: ["Where is the best place to go dancing in the city?", "What's the hardest move to learn?"],
+            extraInterests: ["Live Music", "Cooking"]
+        },
+
+        // GAMES
+        { 
+            category: 'games', name: 'James', age: 28, subtopic: 'Board Games (Catan)', 
+            prompt: "Ask James about his go-to strategy for winning Catan.", 
+            img: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=600&q=80',
+            otherQuestions: ["What's his favorite Catan expansion?", "Does he prefer cooperative games or competitive ones?"],
+            extraInterests: ["Craft Beer", "History Podcasts"]
+        },
+        { 
+            category: 'games', name: 'Mia', age: 24, subtopic: 'Video Games (Zelda)', 
+            prompt: "Ask Mia what she thinks of the latest Zelda game.", 
+            img: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600&q=80',
+            otherQuestions: ["Does she speedrun games or take her time?", "What console does she primarily play on?"],
+            extraInterests: ["Anime", "Digital Art"]
+        },
+        { 
+            category: 'games', name: 'Noah', age: 27, subtopic: 'Party Games', 
+            prompt: "Ask Noah which party game he's surprisingly competitive at.", 
+            img: 'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?w=600&q=80',
+            otherQuestions: ["Is he good at acting out Charades?", "What game always causes arguments?"],
+            extraInterests: ["Standup Comedy", "Mixology"]
+        },
+
+        // TRAVEL
+        { 
+            category: 'travel', name: 'Maya', age: 29, subtopic: 'Japan', 
+            prompt: "Ask Maya about her trip to Japan and her favorite food there.", 
+            img: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=600&q=80',
+            otherQuestions: ["Did she visit Tokyo and Kyoto on her trip?", "Is she planning to go back soon?"],
+            extraInterests: ["Film Photography", "Matcha"]
+        },
+        { 
+            category: 'travel', name: 'Liam', age: 32, subtopic: 'Languages', 
+            prompt: "Ask Liam what languages he's currently learning.", 
+            img: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&q=80',
+            otherQuestions: ["What app does he use to learn new languages?", "What's the hardest language he's tried learning?"],
+            extraInterests: ["Foreign Films", "Cooking"]
+        },
+        { 
+            category: 'travel', name: 'Olivia', age: 27, subtopic: 'Backpacking', 
+            prompt: "Ask Olivia about the craziest hostel story she has.", 
+            img: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=600&q=80',
+            otherQuestions: ["What is the number one essential she packs?", "Where is she planning to backpack next?"],
+            extraInterests: ["Hiking", "Writing"]
+        },
+
+        // NATURE
+        { 
+            category: 'nature', name: 'Elena', age: 30, subtopic: 'Rescue Dogs', 
+            prompt: "Ask Elena about her experience with rescue dogs.", 
+            img: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600&q=80',
+            otherQuestions: ["What breed is her dog?", "Does she currently foster dogs?"],
+            extraInterests: ["Trail Running", "Baking"]
+        },
+        { 
+            category: 'nature', name: 'Ethan', age: 35, subtopic: 'Hiking', 
+            prompt: "Ask Ethan about the best trail he's ever hiked.", 
+            img: 'https://images.unsplash.com/photo-1552058544-f2b08422138a?w=600&q=80',
+            otherQuestions: ["Does he prefer day hikes or multi-day treks?", "What's his favorite national park so far?"],
+            extraInterests: ["Camping", "Photography"]
+        },
+        { 
+            category: 'nature', name: 'Ava', age: 26, subtopic: 'Aquariums', 
+            prompt: "Ask Ava what her favorite marine animal is and why.", 
+            img: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=600&q=80',
+            otherQuestions: ["Has she ever been scuba diving in the ocean?", "What's the best aquarium she's ever visited?"],
+            extraInterests: ["Marine Biology", "Documentaries"]
+        },
+
+        // FOOD & DRINK
+        { 
+            category: 'food', name: 'Rachel', age: 28, subtopic: 'Baking', 
+            prompt: "Ask Rachel what her favorite sourdough recipe is.", 
+            img: 'https://images.unsplash.com/photo-1517365830460-955ce3ccd263?w=600&q=80',
+            otherQuestions: ["How long did it take her to perfect her sourdough starter?", "Does she bake sweet or savory things more?"],
+            extraInterests: ["Food Photography", "Ceramics"]
+        },
+        { 
+            category: 'food', name: 'Leo', age: 33, subtopic: 'Craft Cocktails', 
+            prompt: "Ask Leo what his signature cocktail to make is.", 
+            img: 'https://images.unsplash.com/photo-1492562080023-ab3b95bf520f?w=600&q=80',
+            otherQuestions: ["Does he prefer working with gin or bourbon?", "Where does he find his cocktail recipes?"],
+            extraInterests: ["Jazz Music", "Entertaining"]
+        },
+        { 
+            category: 'food', name: 'Jasmine', age: 27, subtopic: 'Local Restaurants', 
+            prompt: "Ask Jasmine for a restaurant recommendation nearby.", 
+            img: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&q=80',
+            otherQuestions: ["What is the best hidden gem she's found in the city?", "Does she use Yelp or follow food influencers to find spots?"],
+            extraInterests: ["Cooking Classes", "Blogging"]
+        }
+    ];
+
+    let currentQueue = [];
+    let currentIndex = 0;
+
+    const viewCategories = document.getElementById('viewCategories');
+    const viewDiscovery = document.getElementById('viewDiscovery');
+    const viewSuccess = document.getElementById('viewSuccess');
+    const profileCard = document.getElementById('profileCard');
+    const headerCategory = document.getElementById('headerCategory');
+
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function openCategory(catName) {
+        // Set Header
+        const labels = {
+            sports: 'Sports', health: 'Health', arts: 'Arts', games: 'Games', 
+            travel: 'Travel', nature: 'Nature', tech: 'Tech & AI', food: 'Food & Drink'
+        };
+        headerCategory.innerText = labels[catName];
+
+        // Filter and randomize the queue for the selected category
+        currentQueue = shuffle(db.filter(person => person.category === catName));
+        currentIndex = 0;
+
+        renderProfile();
+
+        // Switch screens (make sure to use 'display: flex')
+        viewCategories.classList.remove('active');
+        viewCategories.style.display = 'none';
+        
+        viewDiscovery.style.display = 'flex';
+        setTimeout(() => viewDiscovery.classList.add('active'), 10);
+    }
+
+    function goHome() {
+        viewDiscovery.classList.remove('active');
+        setTimeout(() => {
+            viewDiscovery.style.display = 'none';
+            viewCategories.style.display = 'flex';
+            setTimeout(() => viewCategories.classList.add('active'), 10);
+        }, 100);
+    }
+
+    function goHomeFromSuccess() {
+        viewSuccess.classList.remove('active');
+        setTimeout(() => {
+            viewSuccess.style.display = 'none';
+            viewCategories.style.display = 'flex';
+            setTimeout(() => viewCategories.classList.add('active'), 10);
+        }, 100);
+    }
+
+    function nextProfile() {
+        currentIndex++;
+        renderProfile();
+    }
+
+    function openChat() {
+        const person = currentQueue[currentIndex];
+        const eventSelect = document.getElementById('eventSelect');
+        const currentEvent = eventSelect.options[eventSelect.selectedIndex].text;
+        
+        // Populate Success Screen with primary data
+        document.getElementById('successAvatarImg').src = person.img;
+        document.getElementById('successName').innerText = person.name;
+        document.getElementById('successEventName').innerText = currentEvent;
+        
+        // Distance
+        const randomDistance = Math.floor(Math.random() * 35) + 10;
+        document.getElementById('successDistance').innerText = randomDistance;
+        document.getElementById('successReminderText').innerHTML = `Remember, ask them about <b>${person.subtopic}</b>!`;
+
+        // BONUS: Populate Other Questions
+        const questionsList = document.getElementById('successOtherQuestions');
+        questionsList.innerHTML = '';
+        person.otherQuestions.forEach(q => {
+            const li = document.createElement('li');
+            li.innerHTML = `<i>${q}</i>`;
+            questionsList.appendChild(li);
+        });
+
+        // BONUS: Populate Extra Interests
+        const interestsDiv = document.getElementById('successExtraInterests');
+        interestsDiv.innerHTML = '';
+        person.extraInterests.forEach(interest => {
+            const badge = document.createElement('span');
+            badge.className = 'subtopic-badge my-0 py-1 px-2';
+            badge.style.fontSize = '0.8rem';
+            badge.style.marginBottom = '0';
+            badge.style.backgroundColor = 'rgba(255,255,255,0.08)';
+            badge.innerHTML = `${interest}`;
+            interestsDiv.appendChild(badge);
+        });
+
+        // Transition views
+        viewDiscovery.classList.remove('active');
+        setTimeout(() => {
+            viewDiscovery.style.display = 'none';
+            viewSuccess.style.display = 'flex'; // Use flex for this view too to allow scrolling
+            setTimeout(() => viewSuccess.classList.add('active'), 10);
+        }, 100);
+    }
+
+    function renderProfile() {
+        profileCard.innerHTML = '';
+        
+        setTimeout(() => {
+            if (currentIndex >= currentQueue.length) {
+                profileCard.innerHTML = `
+                    <div class="end-state fade-container">
+                        <i class="bi bi-people-fill"></i>
+                        <h3 class="fw-bold mb-2 text-white">You've seen everyone!</h3>
+                        <p>Try another category to find more people here.</p>
+                        <button class="btn action-btn btn-connect mt-4" style="width: 100%;" onclick="goHome()">Back to Topics</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const person = currentQueue[currentIndex];
+            profileCard.innerHTML = `
+                <div class="fade-container">
+                    <div class="img-wrapper">
+                        <img src="${person.img}" class="profile-img" alt="${person.name}">
+                        <div class="img-overlay"></div>
+                    </div>
+                    <div class="profile-details">
+                        <h2 class="profile-name">${person.name}, ${person.age}</h2>
+                        <div>
+                            <span class="subtopic-badge"><i class="bi bi-tag-fill"></i> ${person.subtopic}</span>
+                        </div>
+                        
+                        <p class="prompt-text">${person.prompt}</p>
+
+                        <div class="action-row">
+                            <button class="action-btn btn-skip" onclick="nextProfile()">
+                                Skip
+                            </button>
+                            <button class="action-btn btn-connect" onclick="openChat()">
+                                Connect
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }, 30);
+    }
+</script>
+</body>
+</html>
